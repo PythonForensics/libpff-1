@@ -1,42 +1,38 @@
-dnl Checks for libfdatetime required headers and functions
+dnl Functions for libfdatetime
 dnl
-dnl Version: 20181117
+dnl Version: 20170905
 
 dnl Function to detect if libfdatetime is available
 dnl ac_libfdatetime_dummy is used to prevent AC_CHECK_LIB adding unnecessary -l<library> arguments
 AC_DEFUN([AX_LIBFDATETIME_CHECK_LIB],
-  [AS_IF(
-    [test "x$ac_cv_enable_shared_libs" = xno || test "x$ac_cv_with_libfdatetime" = xno],
+  [dnl Check if parameters were provided
+  AS_IF(
+    [test "x$ac_cv_with_libfdatetime" != x && test "x$ac_cv_with_libfdatetime" != xno && test "x$ac_cv_with_libfdatetime" != xauto-detect],
+    [AS_IF(
+      [test -d "$ac_cv_with_libfdatetime"],
+      [CFLAGS="$CFLAGS -I${ac_cv_with_libfdatetime}/include"
+      LDFLAGS="$LDFLAGS -L${ac_cv_with_libfdatetime}/lib"],
+      [AC_MSG_WARN([no such directory: $ac_cv_with_libfdatetime])
+      ])
+    ])
+
+  AS_IF(
+    [test "x$ac_cv_with_libfdatetime" = xno],
     [ac_cv_libfdatetime=no],
-    [dnl Check if the directory provided as parameter exists
+    [dnl Check for a pkg-config file
     AS_IF(
-      [test "x$ac_cv_with_libfdatetime" != x && test "x$ac_cv_with_libfdatetime" != xauto-detect],
-      [AS_IF(
-        [test -d "$ac_cv_with_libfdatetime"],
-        [CFLAGS="$CFLAGS -I${ac_cv_with_libfdatetime}/include"
-        LDFLAGS="$LDFLAGS -L${ac_cv_with_libfdatetime}/lib"],
-        [AC_MSG_FAILURE(
-          [no such directory: $ac_cv_with_libfdatetime],
-          [1])
-        ])
-        ac_cv_libfdatetime=check],
-      [dnl Check for a pkg-config file
-      AS_IF(
-        [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
-        [PKG_CHECK_MODULES(
-          [libfdatetime],
-          [libfdatetime >= 20180910],
-          [ac_cv_libfdatetime=yes],
-          [ac_cv_libfdatetime=check])
-        ])
-      AS_IF(
-        [test "x$ac_cv_libfdatetime" = xyes],
-        [ac_cv_libfdatetime_CPPFLAGS="$pkg_cv_libfdatetime_CFLAGS"
-        ac_cv_libfdatetime_LIBADD="$pkg_cv_libfdatetime_LIBS"])
+      [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
+      [PKG_CHECK_MODULES(
+        [libfdatetime],
+        [libfdatetime >= 20160220],
+        [ac_cv_libfdatetime=yes],
+        [ac_cv_libfdatetime=no])
       ])
 
     AS_IF(
-      [test "x$ac_cv_libfdatetime" = xcheck],
+      [test "x$ac_cv_libfdatetime" = xyes],
+      [ac_cv_libfdatetime_CPPFLAGS="$pkg_cv_libfdatetime_CFLAGS"
+      ac_cv_libfdatetime_LIBADD="$pkg_cv_libfdatetime_LIBS"],
       [dnl Check for headers
       AC_CHECK_HEADERS([libfdatetime.h])
 
@@ -456,15 +452,10 @@ AC_DEFUN([AX_LIBFDATETIME_CHECK_LIB],
           [ac_cv_libfdatetime_dummy=yes],
           [ac_cv_libfdatetime=no])
 
-        ac_cv_libfdatetime_LIBADD="-lfdatetime"])
-      ])
-    AS_IF(
-      [test "x$ac_cv_with_libfdatetime" != x && test "x$ac_cv_with_libfdatetime" != xauto-detect && test "x$ac_cv_libfdatetime" != xyes],
-      [AC_MSG_FAILURE(
-        [unable to find supported libfdatetime in directory: $ac_cv_with_libfdatetime],
-        [1])
+      ac_cv_libfdatetime_LIBADD="-lfdatetime"
       ])
     ])
+  ])
 
   AS_IF(
     [test "x$ac_cv_libfdatetime" = xyes],

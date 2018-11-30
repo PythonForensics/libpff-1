@@ -1,39 +1,38 @@
-dnl Checks for libcnotify required headers and functions
+dnl Checks for libcnotify or required headers and functions
 dnl
-dnl Version: 20181117
+dnl Version: 20170904
 
 dnl Function to detect if libcnotify is available
 dnl ac_libcnotify_dummy is used to prevent AC_CHECK_LIB adding unnecessary -l<library> arguments
 AC_DEFUN([AX_LIBCNOTIFY_CHECK_LIB],
-  [AS_IF(
-    [test "x$ac_cv_enable_shared_libs" = xno || test "x$ac_cv_with_libcnotify" = xno],
-    [ac_cv_libcnotify=no],
-    [dnl Check if the directory provided as parameter exists
-    AS_IF(
-      [test "x$ac_cv_with_libcnotify" != x && test "x$ac_cv_with_libcnotify" != xauto-detect],
-      [AS_IF(
-        [test -d "$ac_cv_with_libcnotify"],
-        [CFLAGS="$CFLAGS -I${ac_cv_with_libcnotify}/include"
-        LDFLAGS="$LDFLAGS -L${ac_cv_with_libcnotify}/lib"],
-        [AC_MSG_FAILURE(
-          [no such directory: $ac_cv_with_libcnotify],
-          [1])
-        ])
-        ac_cv_libcnotify=check],
-      [dnl Check for a pkg-config file
-      AS_IF(
-        [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
-        [PKG_CHECK_MODULES(
-          [libcnotify],
-          [libcnotify >= 20120425],
-          [ac_cv_libcnotify=yes],
-          [ac_cv_libcnotify=check])
-        ])
-      AS_IF(
-        [test "x$ac_cv_libcnotify" = xyes],
-        [ac_cv_libcnotify_CPPFLAGS="$pkg_cv_libcnotify_CFLAGS"
-        ac_cv_libcnotify_LIBADD="$pkg_cv_libcnotify_LIBS"])
+  [dnl Check if parameters were provided
+  AS_IF(
+    [test "x$ac_cv_with_libcnotify" != x && test "x$ac_cv_with_libcnotify" != xno && test "x$ac_cv_with_libcnotify" != xauto-detect],
+    [AS_IF(
+      [test -d "$ac_cv_with_libcnotify"],
+      [CFLAGS="$CFLAGS -I${ac_cv_with_libcnotify}/include"
+      LDFLAGS="$LDFLAGS -L${ac_cv_with_libcnotify}/lib"],
+      [AC_MSG_WARN([no such directory: $ac_cv_with_libcnotify])
       ])
+    ])
+
+  AS_IF(
+    [test "x$ac_cv_with_libcnotify" = xno],
+    [ac_cv_libcnotify=no],
+    [dnl Check for a pkg-config file
+    AS_IF(
+      [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
+      [PKG_CHECK_MODULES(
+        [libcnotify],
+        [libcnotify >= 20120425],
+        [ac_cv_libcnotify=yes],
+        [ac_cv_libcnotify=check])
+      ])
+
+    AS_IF(
+      [test "x$ac_cv_libcnotify" = xyes],
+      [ac_cv_libcnotify_CPPFLAGS="$pkg_cv_libcnotify_CFLAGS"
+      ac_cv_libcnotify_LIBADD="$pkg_cv_libcnotify_LIBS"])
 
     AS_IF(
       [test "x$ac_cv_libcnotify" = xcheck],
@@ -93,13 +92,8 @@ AC_DEFUN([AX_LIBCNOTIFY_CHECK_LIB],
           [ac_cv_libcnotify_dummy=yes],
           [ac_cv_libcnotify=no])
 
-        ac_cv_libcnotify_LIBADD="-lcnotify"])
-      ])
-    AS_IF(
-      [test "x$ac_cv_with_libcnotify" != x && test "x$ac_cv_with_libcnotify" != xauto-detect && test "x$ac_cv_libcnotify" != xyes],
-      [AC_MSG_FAILURE(
-        [unable to find supported libcnotify in directory: $ac_cv_with_libcnotify],
-        [1])
+        ac_cv_libcnotify_LIBADD="-lcnotify"
+        ])
       ])
     ])
 

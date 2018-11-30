@@ -1,42 +1,38 @@
-dnl Checks for libfguid required headers and functions
+dnl Functions for libfguid
 dnl
-dnl Version: 20181117
+dnl Version: 20170906
 
 dnl Function to detect if libfguid is available
 dnl ac_libfguid_dummy is used to prevent AC_CHECK_LIB adding unnecessary -l<library> arguments
 AC_DEFUN([AX_LIBFGUID_CHECK_LIB],
-  [AS_IF(
-    [test "x$ac_cv_enable_shared_libs" = xno || test "x$ac_cv_with_libfguid" = xno],
+  [dnl Check if parameters were provided
+  AS_IF(
+    [test "x$ac_cv_with_libfguid" != x && test "x$ac_cv_with_libfguid" != xno && test "x$ac_cv_with_libfguid" != xauto-detect],
+    [AS_IF(
+      [test -d "$ac_cv_with_libfguid"],
+      [CFLAGS="$CFLAGS -I${ac_cv_with_libfguid}/include"
+      LDFLAGS="$LDFLAGS -L${ac_cv_with_libfguid}/lib"],
+      [AC_MSG_WARN([no such directory: $ac_cv_with_libfguid])
+      ])
+    ])
+
+  AS_IF(
+    [test "x$ac_cv_with_libfguid" = xno],
     [ac_cv_libfguid=no],
-    [dnl Check if the directory provided as parameter exists
+    [dnl Check for a pkg-config file
     AS_IF(
-      [test "x$ac_cv_with_libfguid" != x && test "x$ac_cv_with_libfguid" != xauto-detect],
-      [AS_IF(
-        [test -d "$ac_cv_with_libfguid"],
-        [CFLAGS="$CFLAGS -I${ac_cv_with_libfguid}/include"
-        LDFLAGS="$LDFLAGS -L${ac_cv_with_libfguid}/lib"],
-        [AC_MSG_FAILURE(
-          [no such directory: $ac_cv_with_libfguid],
-          [1])
-        ])
-        ac_cv_libfguid=check],
-      [dnl Check for a pkg-config file
-      AS_IF(
-        [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
-        [PKG_CHECK_MODULES(
-          [libfguid],
-          [libfguid >= 20120426],
-          [ac_cv_libfguid=yes],
-          [ac_cv_libfguid=check])
-        ])
-      AS_IF(
-        [test "x$ac_cv_libfguid" = xyes],
-        [ac_cv_libfguid_CPPFLAGS="$pkg_cv_libfguid_CFLAGS"
-        ac_cv_libfguid_LIBADD="$pkg_cv_libfguid_LIBS"])
+      [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
+      [PKG_CHECK_MODULES(
+        [libfguid],
+        [libfguid >= 20120426],
+        [ac_cv_libfguid=yes],
+        [ac_cv_libfguid=no])
       ])
 
     AS_IF(
-      [test "x$ac_cv_libfguid" = xcheck],
+      [test "x$ac_cv_libfguid" = xyes],
+      [ac_cv_libfguid_CPPFLAGS="$pkg_cv_libfguid_CFLAGS"
+      ac_cv_libfguid_LIBADD="$pkg_cv_libfguid_LIBS"],
       [dnl Check for headers
       AC_CHECK_HEADERS([libfguid.h])
 
@@ -104,13 +100,8 @@ AC_DEFUN([AX_LIBFGUID_CHECK_LIB],
           [ac_cv_libfguid_dummy=yes],
           [ac_cv_libfguid=no])
 
-        ac_cv_libfguid_LIBADD="-lfguid"])
-      ])
-    AS_IF(
-      [test "x$ac_cv_with_libfguid" != x && test "x$ac_cv_with_libfguid" != xauto-detect && test "x$ac_cv_libfguid" != xyes],
-      [AC_MSG_FAILURE(
-        [unable to find supported libfguid in directory: $ac_cv_with_libfguid],
-        [1])
+        ac_cv_libfguid_LIBADD="-lfguid"
+        ])
       ])
     ])
 
@@ -142,7 +133,6 @@ AC_DEFUN([AX_LIBFGUID_CHECK_LOCAL],
 
   ac_cv_libfguid=local
   ])
-
 
 dnl Function to detect how to enable libfguid
 AC_DEFUN([AX_LIBFGUID_CHECK_ENABLE],

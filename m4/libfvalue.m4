@@ -1,42 +1,38 @@
-dnl Checks for libfvalue required headers and functions
+dnl Functions for libfvalue
 dnl
-dnl Version: 20181117
+dnl Version: 20180410
 
-dnl Function to detect if libfvalue is available
+dnl Function to detect if libfvalue available
 dnl ac_libfvalue_dummy is used to prevent AC_CHECK_LIB adding unnecessary -l<library> arguments
 AC_DEFUN([AX_LIBFVALUE_CHECK_LIB],
-  [AS_IF(
-    [test "x$ac_cv_enable_shared_libs" = xno || test "x$ac_cv_with_libfvalue" = xno],
+  [dnl Check if parameters were provided
+  AS_IF(
+    [test "x$ac_cv_with_libfvalue" != x && test "x$ac_cv_with_libfvalue" != xno && test "x$ac_cv_with_libfvalue" != xauto-detect],
+    [AS_IF(
+      [test -d "$ac_cv_with_libfvalue"],
+      [CFLAGS="$CFLAGS -I${ac_cv_with_libfvalue}/include"
+      LDFLAGS="$LDFLAGS -L${ac_cv_with_libfvalue}/lib"],
+      [AC_MSG_WARN([no such directory: $ac_cv_with_libfvalue])
+      ])
+    ])
+
+  AS_IF(
+    [test "x$ac_cv_with_libfvalue" = xno],
     [ac_cv_libfvalue=no],
-    [dnl Check if the directory provided as parameter exists
+    [dnl Check for a pkg-config file
     AS_IF(
-      [test "x$ac_cv_with_libfvalue" != x && test "x$ac_cv_with_libfvalue" != xauto-detect],
-      [AS_IF(
-        [test -d "$ac_cv_with_libfvalue"],
-        [CFLAGS="$CFLAGS -I${ac_cv_with_libfvalue}/include"
-        LDFLAGS="$LDFLAGS -L${ac_cv_with_libfvalue}/lib"],
-        [AC_MSG_FAILURE(
-          [no such directory: $ac_cv_with_libfvalue],
-          [1])
-        ])
-        ac_cv_libfvalue=check],
-      [dnl Check for a pkg-config file
-      AS_IF(
-        [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
-        [PKG_CHECK_MODULES(
-          [libfvalue],
-          [libfvalue >= 20160131],
-          [ac_cv_libfvalue=yes],
-          [ac_cv_libfvalue=check])
-        ])
-      AS_IF(
-        [test "x$ac_cv_libfvalue" = xyes],
-        [ac_cv_libfvalue_CPPFLAGS="$pkg_cv_libfvalue_CFLAGS"
-        ac_cv_libfvalue_LIBADD="$pkg_cv_libfvalue_LIBS"])
+      [test "x$cross_compiling" != "xyes" && test "x$PKGCONFIG" != "x"],
+      [PKG_CHECK_MODULES(
+        [libfvalue],
+        [libfvalue >= 20160131],
+        [ac_cv_libfvalue=yes],
+        [ac_cv_libfvalue=no])
       ])
 
     AS_IF(
-      [test "x$ac_cv_libfvalue" = xcheck],
+      [test "x$ac_cv_libfvalue" = xyes],
+      [ac_cv_libfvalue_CPPFLAGS="$pkg_cv_libfvalue_CFLAGS"
+      ac_cv_libfvalue_LIBADD="$pkg_cv_libfvalue_LIBS"],
       [dnl Check for headers
       AC_CHECK_HEADERS([libfvalue.h])
 
@@ -586,14 +582,19 @@ AC_DEFUN([AX_LIBFVALUE_CHECK_LIB],
           [ac_cv_libfvalue_dummy=yes],
           [ac_cv_libfvalue=no])
 
-        ac_cv_libfvalue_LIBADD="-lfvalue"])
+        ac_cv_libfvalue_LIBADD="-lfvalue"
+        ])
       ])
-    AS_IF(
-      [test "x$ac_cv_with_libfvalue" != x && test "x$ac_cv_with_libfvalue" != xauto-detect && test "x$ac_cv_libfvalue" != xyes],
-      [AC_MSG_FAILURE(
-        [unable to find supported libfvalue in directory: $ac_cv_with_libfvalue],
-        [1])
-      ])
+    ])
+
+  dnl Check for debug functions
+  AS_IF(
+    [test "x$ac_cv_libfvalue" = xyes && test "x$ac_cv_enable_debug_output" != xno],
+    [AC_CHECK_LIB(
+      fvalue,
+      libfvalue_value_print,
+      [ac_cv_libfvalue_dummy=yes],
+      [ac_cv_libfvalue=no])
     ])
 
   AS_IF(
